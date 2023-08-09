@@ -7,7 +7,7 @@ function navigateTo(url) {
 function getHomePageTemplate() {
   return `
    <div id="content" >
-      <img src="./src/assets/Endava.png" alt="summer">
+      
       <div class="events flex items-center justify-center flex-wrap">
       </div>
     </div>
@@ -56,39 +56,109 @@ function setupInitialPage() {
   renderContent(initialUrl);
 }
 
-function renderHomePage() {
+async function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getHomePageTemplate();
-  // Sample hardcoded event data
-  const eventData = {
-    id: 1,
-    description: 'Sample event description.',
-    img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
-    name: 'Sample Event',
-    ticketCategories: [
-      { id: 1, description: 'General Admission' },
-      { id: 2, description: 'VIP' },
-    ],
-  };
-  // Create the event card element
-  const eventCard = document.createElement('div');
-  eventCard.classList.add('event-card'); 
-  // Create the event content markup
-  const contentMarkup = `
-    <header>
-      <h2 class="event-title text-2xl font-bold">${eventData.name}</h2>
-    </header>
-    <div class="content">
-      <img src="${eventData.img}" alt="${eventData.name}" class="event-image w-full height-200 rounded object-cover mb-4">
-      <p class="description text-gray-700">${eventData.description}</p>
-    </div>
-  `;
 
-  eventCard.innerHTML = contentMarkup;
+  console.log('function', fetchTicketEvents());
+  fetchTicketEvents().then((data)=>{
+    console.log('data', data);
+  });
+
+  const eventsData = await fetchTicketEvents();
   const eventsContainer = document.querySelector('.events');
-  // Append the event card to the events container
-  eventsContainer.appendChild(eventCard);
+
+  eventsData.forEach(eventData => {
+    const eventCard = document.createElement('div');
+    eventCard.classList.add('event-card');
+    const contentMarkup = `
+    <div class="card">
+      <header>
+        <h2 class="event-title text-2xl font-bold">${eventData.eventName}</h2>
+        <hr>
+      </header>
+      <div class="content">
+        <p class="description text-gray-700">${eventData.eventDescription}</p>
+        <div class="dropdowns absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
+          <p class="font-bold mb-2">Choose the Ticket Category:</p>
+           <select class='ticket-category mb-2'">
+             <option value="1">Standard</option>
+             <option value="2">VIP</option>
+           </select>
+
+          <div class="quantity">
+           
+            <button class="btn btn-quantity" data-action="decrement">-</button>
+            <input type="number" class="ticket-quantity-input" value="0">
+            <button class="btn btn-quantity" data-action="increment">+</button>
+            
+          </div>
+          <button class="btn btn-primary mt-4 mx-auto block rounded-full font-bold py-2 px-6" id="buyTicketsBtn">Buy</button>
+        </div>
+      </div>
+      </div>
+    `;
+
+    eventCard.innerHTML = contentMarkup;
+    eventsContainer.appendChild(eventCard);
+
+    const buyTicketsButton = eventCard.querySelector('#buyTicketsBtn');
+    const ticketCategorySelect = eventCard.querySelector(`.ticket-category-${eventData.eventId}`);
+    const quantityInput = eventCard.querySelector('.ticket-quantity-input');
+
+    buyTicketsButton.addEventListener('click', async () => 
+    {
+     const ticketCategorySelect= document.querySelector(`.ticket-category-${eventData.eventId}`);
+     const selectedTicketCategory=ticketCategorySelect.value;
+     console.log(selectedTicketCategory);
+      const eventID = eventData.eventId; // ID-ul evenimentului
+      const ticketCategoryID = parseInt(ticketCategorySelect.value);
+      const numberOfTickets = parseInt(quantityInput.value);
+
+      const orderData = {
+        eventID,
+        ticketCategoryID:selectedTicketCategory,
+        numberOfTickets
+      };
+console.log(JSON.stringify(orderData));
+      try {
+        const response = await placeOrder(orderData);
+        console.log('Order placed:', response);
+        // Aici puteți efectua acțiunile necesare după ce a fost plasată comanda
+      } catch (error) {
+        console.error('Error placing order:', error);
+      }
+    });
+
+    const dropdowns = eventCard.querySelector('.dropdowns');
+   // const quantityInput = eventCard.querySelector('.ticket-quantity-input');
+    const incrementButton = eventCard.querySelector('[data-action="increment"]');
+    const decrementButton = eventCard.querySelector('[data-action="decrement"]');
+
+    incrementButton.addEventListener('click', () => {
+      let currentValue = parseInt(quantityInput.value);
+      if (currentValue >= 0) {
+        quantityInput.value = currentValue + 1;
+      }
+    });
+
+    decrementButton.addEventListener('click', () => {
+      let currentValue = parseInt(quantityInput.value);
+      if (currentValue > 0) {
+        quantityInput.value = currentValue - 1;
+      }
+    });
+  });
 }
+
+//backend
+async function fetchTicketEvents(){
+  const response = await fetch('https://localhost:7114/api/Event/GetAll');
+  const data=await response.json();
+  return data;
+}
+
+
 
 function renderOrdersPage(categories) {
   const mainContentDiv = document.querySelector('.main-content-component');
