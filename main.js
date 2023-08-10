@@ -78,10 +78,13 @@ async function renderHomePage() {
         <hr>
       </header>
       <div class="content">
-        <p class="description text-gray-700">${eventData.eventDescription}</p>
+         <div class="descriptionBox>
+            <p> Description:</p>
+            <p class=" text-gray-700">Description: ${eventData.eventDescription}</p>
+         </div>
         <div class="dropdowns absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
           <p class="font-bold mb-2">Choose the Ticket Category:</p>
-           <select class='ticket-category mb-2'">
+           <select class='ticket-category-${eventData.eventID} mb-2'">
              <option value="1">Standard</option>
              <option value="2">VIP</option>
            </select>
@@ -120,11 +123,11 @@ async function renderHomePage() {
         ticketCategoryID:selectedTicketCategory,
         numberOfTickets
       };
-console.log(JSON.stringify(orderData));
+        console.log(JSON.stringify(orderData));
       try {
         const response = await placeOrder(orderData);
         console.log('Order placed:', response);
-        // Aici puteți efectua acțiunile necesare după ce a fost plasată comanda
+
       } catch (error) {
         console.error('Error placing order:', error);
       }
@@ -156,6 +159,24 @@ async function fetchTicketEvents(){
   const response = await fetch('https://localhost:7114/api/Event/GetAll');
   const data=await response.json();
   return data;
+}
+
+async function placeOrder(orderData) {
+  const apiUrl = 'http://localhost:9090/create-order'; // Înlocuiți cu URL-ul real al API-ului
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orderData)
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to place order');
+  }
+
+  const responseData = await response.json();
+  return responseData;
 }
 
 

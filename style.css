@@ -14,14 +14,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-color: #de411b;
 }
-
-.event-card:first-child {
-  margin-left: 20px; /* Margine doar pe partea stanga  */
-}
-
-
 
 h1 {
   text-align: center;
