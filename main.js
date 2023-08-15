@@ -1,3 +1,7 @@
+//Imports
+import { removeLoader, addLoader } from "./loader";
+
+
 // Navigate to a specific URL
 function navigateTo(url) {
   history.pushState(null, null, url);
@@ -6,7 +10,7 @@ function navigateTo(url) {
 // HTML templates
 function getHomePageTemplate() {
   return `
-   <div id="content" >
+   <div id="content" class="hidden">
       
       <div class="events flex items-center justify-center flex-wrap">
       </div>
@@ -18,6 +22,24 @@ function getOrdersPageTemplate() {
   return `
     <div id="content">
     <h1 class="text-2xl mb-4 mt-8 text-center">Purchased Tickets</h1>
+    <div class="purchases ml-6 mr-6">
+       <div class="bg-white px-4 py-3 gap-x-4 flex font-bold">
+         <button class="flex flex-1 text-center justify-center" id="sorting-button-1">
+         <span>Name</span>
+         <i class="fa-solid fa-arrow-up-wide-short text-xl" id="sorting-icon-1"></i>
+         </button>
+         <span class="flex-1">Nr tickets</span>
+         <span class="flex-1">Category</span>
+         <span class="flex-1 hidden md:flex text-center justify-center" id="sorting-button-2">
+             <span>Price</span>
+             <i class="fa-solid fa-arrow-up-wide-short text-xl" id="sorting-icon-2"></i>
+             </button>
+             <span class="w-28 sm:w-8></span>
+             </div>
+             <div id="purchases-content">
+             </div>
+             </div>
+    
     </div>
   `;
 }
@@ -61,7 +83,11 @@ async function renderHomePage() {
   mainContentDiv.innerHTML = getHomePageTemplate();
 
   console.log('function', fetchTicketEvents());
-  fetchTicketEvents().then((data)=>{
+  fetchTicketEvents()
+  .then((data)=>{
+    setTimeout(()=> {
+      removeLoader();
+    },200);
     console.log('data', data);
   });
 
@@ -83,10 +109,10 @@ async function renderHomePage() {
             <p class=" text-gray-700">Description: ${eventData.eventDescription}</p>
          </div>
         <div class="dropdowns absolute bottom-0 right-0 p-4 bg-white border rounded shadow-md">
-          <p class="font-bold mb-2">Choose the Ticket Category:</p>
+          <p class="font-bold mb-2">Choose ticket category:</p>
            <select class='ticket-category-${eventData.eventID} mb-2'">
-             <option value="1">Standard</option>
-             <option value="2">VIP</option>
+           <option value="${eventData.ticketCategory[0].ticketCategoryId}">${eventData.ticketCategory[0].description}</option>
+           <option value="${eventData.ticketCategory[1].ticketCategoryId}">${eventData.ticketCategory[1].description}</option>
            </select>
 
           <div class="quantity">
@@ -106,15 +132,15 @@ async function renderHomePage() {
     eventsContainer.appendChild(eventCard);
 
     const buyTicketsButton = eventCard.querySelector('#buyTicketsBtn');
-    const ticketCategorySelect = eventCard.querySelector(`.ticket-category-${eventData.eventId}`);
+    const ticketCategorySelect = eventCard.querySelector(`.ticket-category-${eventData.eventID}`);
     const quantityInput = eventCard.querySelector('.ticket-quantity-input');
 
     buyTicketsButton.addEventListener('click', async () => 
     {
-     const ticketCategorySelect= document.querySelector(`.ticket-category-${eventData.eventId}`);
+     const ticketCategorySelect= document.querySelector(`.ticket-category-${eventData.eventID}`);
      const selectedTicketCategory=ticketCategorySelect.value;
-     console.log(selectedTicketCategory);
-      const eventID = eventData.eventId; // ID-ul evenimentului
+     
+      const eventID = eventData.eventID; 
       const ticketCategoryID = parseInt(ticketCategorySelect.value);
       const numberOfTickets = parseInt(quantityInput.value);
 
@@ -154,21 +180,30 @@ async function renderHomePage() {
   });
 }
 
-//backend
+//get tickets ----------
 async function fetchTicketEvents(){
   const response = await fetch('https://localhost:7114/api/Event/GetAll');
   const data=await response.json();
   return data;
 }
 
+//place order --------
 async function placeOrder(orderData) {
-  const apiUrl = 'http://localhost:9090/create-order'; // Înlocuiți cu URL-ul real al API-ului
+  const apiUrl = 'http://localhost:9090/create-order';
+  
+  addLoader();
+
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(orderData)
+  })
+  .finally(()=> {
+    setTimeout(()=> {
+      removeLoader();
+    },200);
   });
 
   if (!response.ok) {
@@ -180,10 +215,33 @@ async function placeOrder(orderData) {
 }
 
 
+//get orders ----------
+async function fetchOrders() {
+  const response = await fetch('https://localhost:7114/api/Order/GetAll');
+  const orders = await response.json();
+  return orders;
+}
 
-function renderOrdersPage(categories) {
+function renderOrdersPage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getOrdersPageTemplate();
+
+  const purchasesDiv = document.querySelector('.purchases');
+  const purchasesContent = document.getElementById('purchases-content');
+  addLoader();
+
+  console.log('function', fetchOrders());
+  fetchOrders()
+  .then((orders)=>{
+    console.log('order', orders); //-afisare orders in console
+  });
+
+   // if(purchasesDiv){
+      
+   // }
+  //To do:
+  // - remove loader
+  // - add elemnets to container
 }
 
 // Render content based on URL
