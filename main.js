@@ -14,7 +14,8 @@ function navigateTo(url) {
 function getHomePageTemplate() {
   return `
    <div id="content" class="hidden">
-      
+   <input type="text" id="searchInput" placeholder="Caută...">
+   <ul id="results"></ul>
       <div class="events flex items-center justify-center flex-wrap">
       </div>
     </div>
@@ -71,6 +72,8 @@ function setupInitialPage() {
 async function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getHomePageTemplate();
+
+  
 
   console.log('function', fetchTicketEvents());
   fetchTicketEvents()
@@ -225,10 +228,16 @@ async function renderOrderCard(orderData) {
   const contentMarkup = `
   <td class="order-details">${orderData.orderId}</td>
   <td class="order-details">${orderData.orderedAt}</td>
-  <td class="order-details">${orderData.ticketCategory}</td>
+  <td class="order-details ticketCategoryDisplay">${orderData.ticketCategory}</td>
+  <div class="dropdown-from-orders hide">
+      <select>
+        <option value="vip">VIP</option>
+        <option value="standard">Standard</option>
+      </select>
+  </div>
   <td class="order-details">
-      <span class="ticket-count">${orderData.numberOfTickets}</span>
-      <input type="number" class="input-ticket-count" value="${orderData.numberOfTickets}" style="display: none;">
+  <span class="ticket-count-display ">${orderData.numberOfTickets}</span>
+      <input type="number" class="input-ticket-count hide" value="${orderData.numberOfTickets}" >
     </td>
   <td class="order-details">${orderData.totalPrice}</td>
   <td class="order-actions">
@@ -238,10 +247,10 @@ async function renderOrderCard(orderData) {
     <button class="btn btn-delete">
     <i class="fa-solid fa-trash-can"></i>
     </button>
-    <button class="btn btn-save hide" hidden>
+    <button class="btn btn-save hide" >
     <i class="fa-solid fa-check"></i>
     </button>
-    <button class="btn btn-cancel hide" hidden>
+    <button class="btn btn-cancel hide" >
     <i class="fa-solid fa-xmark"></i>
     </button>
   </td>
@@ -252,15 +261,20 @@ async function renderOrderCard(orderData) {
   const deleteButton = orderCard.querySelector('.btn-delete');
   const saveButton = orderCard.querySelector('.btn-save');
   const cancelButton = orderCard.querySelector('.btn-cancel');
-  const ticketCountDisplay = orderCard.querySelector('.ticket-count');
-  const inputTicketCount = orderCard.querySelector('.input-ticket-count');
+  const inputTicketCount = orderCard.querySelector('.input-ticket-count'); //hidden initial
+  const ticketCountDisplay = orderCard.querySelector('.ticket-count-display');
+  const ticketCategoryDisplay=orderCard.querySelector('.ticketCategoryDisplay');
+  const ticketCategoryChange=orderCard.querySelector('.dropdown-from-orders');
 
   modifyButton.addEventListener('click', () => {
     modifyButton.classList.add('hide');
     deleteButton.classList.add('hide');
-    saveButton.classList.remove('hide'); // Show the Save button
-    cancelButton.classList.remove('hide'); // Show the Cancel button
-   
+    saveButton.classList.remove('hide'); 
+    cancelButton.classList.remove('hide'); 
+    ticketCountDisplay.classList.add('hide');
+    inputTicketCount.classList.remove('hide');  
+    ticketCategoryDisplay.classList.add('hide');
+    ticketCategoryChange.classList.remove('hide'); 
   });
 
   saveButton.addEventListener('click', () => {
@@ -271,6 +285,12 @@ async function renderOrderCard(orderData) {
     cancelButton.classList.add('hide'); // Hide the Cancel button again
     modifyButton.classList.remove('hide');
     deleteButton.classList.remove('hide');
+    ticketCountDisplay.classList.remove('hide');
+    inputTicketCount.classList.add('hide'); 
+    ticketCategoryDisplay.classList.remove('hide');
+    ticketCategoryChange.classList.add('hide');
+    
+    
     
   });
 
@@ -279,27 +299,29 @@ async function renderOrderCard(orderData) {
     cancelButton.classList.add('hide'); // Hide the Cancel button again
     modifyButton.classList.remove('hide');
     deleteButton.classList.remove('hide');
- 
+    ticketCountDisplay.classList.remove('hide');
+    inputTicketCount.classList.add('hide');  
+    ticketCategoryDisplay.classList.remove('hide');
+    ticketCategoryChange.classList.add('hide');
   });
 
   deleteButton.addEventListener('click', async () => {
-
-    const deletionResult = await deleteOrder(orderData.orderId);
+    const confirmation = confirm('Sunteți sigur că doriți să ștergeți comanda?');
   
-    if (deletionResult.success) {
+    if (confirmation) {
+      const deletionResult = await deleteOrder(orderData.orderId);
   
-       console.log('order.orderId');
-       orderCard.remove();
-      console.log('successful deletion')
-  
+      if (deletionResult.success) {
+        console.log(orderData.orderId);
+        orderCard.remove();
+        console.log('Ștergere reușită');
+      } else {
+        console.error(deletionResult.message);
+      }
     } else {
-  
-      console.error(deletionResult.message);
-  
+      console.log('Ștergere anulată');
     }
-  
   });
-
   return orderCard;
 }
 

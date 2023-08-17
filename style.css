@@ -208,3 +208,19 @@ th,
 .hide {
   display: none;
 }
+
+/* ---search bar  */
+#searchInput {
+  width: 300px;
+  padding: 5px;
+}
+
+#results {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+#results li {
+  margin: 5px 0;
+}
