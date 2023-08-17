@@ -1,5 +1,8 @@
 //Imports
 import { removeLoader, addLoader } from "./loader";
+//import { createOrderItem } from "./ordersTemplate";
+//import { renderOrderCard } from "./ordersTemplate";
+import { deleteOrder } from "./deleteOrder";
 
 
 // Navigate to a specific URL
@@ -20,28 +23,15 @@ function getHomePageTemplate() {
 
 function getOrdersPageTemplate() {
   return `
-    <div id="content">
-    <h1 class="text-2xl mb-4 mt-8 text-center">Purchased Tickets</h1>
-    <div class="purchases ml-6 mr-6">
-       <div class="bg-white px-4 py-3 gap-x-4 flex font-bold">
-         <button class="flex flex-1 text-center justify-center" id="sorting-button-1">
-         <span>Name</span>
-         <i class="fa-solid fa-arrow-up-wide-short text-xl" id="sorting-icon-1"></i>
-         </button>
-         <span class="flex-1">Nr tickets</span>
-         <span class="flex-1">Category</span>
-         <span class="flex-1 hidden md:flex text-center justify-center" id="sorting-button-2">
-             <span>Price</span>
-             <i class="fa-solid fa-arrow-up-wide-short text-xl" id="sorting-icon-2"></i>
-             </button>
-             <span class="w-28 sm:w-8></span>
-             </div>
-             <div id="purchases-content">
-             </div>
-             </div>
-    
-    </div>
-  `;
+  <head>
+      <link rel="stylesheet" href="style.css">
+  </head>
+  <div id="content">
+      <h1 class="text-2xl mb-4 mt-8 text-center">Purchased Tickets</h1>
+         
+  </div>
+</div>
+`;
 }
 
 function setupNavigationEvents() {
@@ -218,30 +208,128 @@ async function placeOrder(orderData) {
 //get orders ----------
 async function fetchOrders() {
   const response = await fetch('https://localhost:7114/api/Order/GetAll');
-  const orders = await response.json();
+  addLoader();
+  const orders = await response.json().finally(()=> {
+    setTimeout(()=> {
+      removeLoader();
+    },200);
+  });
   return orders;
 }
 
-function renderOrdersPage() {
+
+async function renderOrderCard(orderData) {
+  const orderCard = document.createElement('tr');
+  orderCard.classList.add('order-card');
+
+  const contentMarkup = `
+  <td class="order-details">${orderData.orderId}</td>
+  <td class="order-details">${orderData.orderedAt}</td>
+  <td class="order-details">${orderData.ticketCategory}</td>
+  <td class="order-details">
+      <span class="ticket-count">${orderData.numberOfTickets}</span>
+      <input type="number" class="input-ticket-count" value="${orderData.numberOfTickets}" style="display: none;">
+    </td>
+  <td class="order-details">${orderData.totalPrice}</td>
+  <td class="order-actions">
+  <button class="btn btn-modify">
+       <i class="fa-solid fa-angles-down fa-beat-fade" style="color: #f9a124;"></i>
+   </button>
+    <button class="btn btn-delete">
+    <i class="fa-solid fa-trash-can"></i>
+    </button>
+    <button class="btn btn-save" hidden>
+    <i class="fa-solid fa-check"></i>
+    </button>
+    <button class="btn btn-cancel" hidden>
+    <i class="fa-solid fa-xmark"></i>
+    </button>
+  </td>
+`;
+
+  orderCard.innerHTML = contentMarkup;
+  const modifyButton = orderCard.querySelector('.btn-modify');
+  const deleteButton = orderCard.querySelector('.btn-delete');
+  const saveButton = orderCard.querySelector('.btn-save');
+  const cancelButton = orderCard.querySelector('.btn-cancel');
+  const ticketCountDisplay = orderCard.querySelector('.ticket-count');
+  const inputTicketCount = orderCard.querySelector('.input-ticket-count');
+
+  modifyButton.addEventListener('click', () => {
+  
+
+   
+  });
+
+  saveButton.addEventListener('click', () => {
+    const newTicketCount = inputTicketCount.value;
+    // Aici poți adăuga cod pentru a actualiza numărul de bilete în obiectul orderData sau în altă parte
+    ticketCountDisplay.textContent = newTicketCount;
+
+  
+    
+  });
+
+  cancelButton.addEventListener('click', () => {
+   
+
+ 
+  });
+
+  deleteButton.addEventListener('click', async () => {
+
+    const deletionResult = await deleteOrder(orderData.orderId);
+  
+    if (deletionResult.success) {
+  
+       console.log('order.orderId');
+       orderCard.remove();
+      console.log('successful deletion')
+  
+    } else {
+  
+      console.error(deletionResult.message);
+  
+    }
+  
+  });
+
+  return orderCard;
+}
+
+async function renderOrdersPage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getOrdersPageTemplate();
 
-  const purchasesDiv = document.querySelector('.purchases');
-  const purchasesContent = document.getElementById('purchases-content');
-  addLoader();
+  const ordersData = await fetchOrders();
 
-  console.log('function', fetchOrders());
-  fetchOrders()
-  .then((orders)=>{
-    console.log('order', orders); //-afisare orders in console
-  });
+  const ordersTable = document.createElement('table');
+  ordersTable.classList.add('orders-table');
 
-   // if(purchasesDiv){
-      
-   // }
-  //To do:
-  // - remove loader
-  // - add elemnets to container
+  const tableHeaderMarkup = `
+    <thead>
+      <tr>
+        <th>OrderID</th>
+        <th>Date</th>
+        <th>Ticket Category</th>
+        <th>Number of Tickets</th>
+        <th>Total Price</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+  `;
+  ordersTable.innerHTML = tableHeaderMarkup;
+
+  const tableBody = document.createElement('tbody');
+  console.log("OrdersData", ordersData);
+
+  for (const orderData of ordersData) {
+    const orderCard = await renderOrderCard(orderData);
+    tableBody.appendChild(orderCard);
+  }
+
+  ordersTable.appendChild(tableBody);
+  mainContentDiv.appendChild(ordersTable);
 }
 
 // Render content based on URL

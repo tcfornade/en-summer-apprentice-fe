@@ -131,6 +131,7 @@ h1 {
 
 .content {
   /* Restul stilurilor pentru conținut */
+  
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -144,4 +145,62 @@ h1 {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: white;
+}
+
+/* for orders page */
+
+.purchases{
+  max-width: 100%; /* Asigură că conținutul nu depășește lățimea paginii */
+  margin: 0 auto; 
+}
+#purchases-content {
+  max-width: 100%; /* Asigură că conținutul nu depășește lățimea paginii */
+  margin: 0 auto; /* Afișează conținutul centralizat pe pagină */
+}
+
+.table-content{
+  width: 100%;
+  background-color: #de411b;
+  border-collapse: collapse;
+}
+
+th,
+ td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  width: 18%; /* Schimbați acest procentual pentru a ajusta dimensiunea celulelor */
+  text-align: center; /* Alinează conținutul celulelor în centru */
+}
+
+
+.delete-button {
+  background-color: red;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+/* Stilizează pictograma */
+
+
+.btn-delete{
+  color: #df722a;
+  margin:5px;
+}
+
+.btn-modify{
+  padding: 15px;
+  margin:5px;
+}
+
+.btn-cancel{
+ 
+  margin:5px;
+  color: #df722a;
+}
+
+.btn-save{
+  
+  margin:5px;
 }
