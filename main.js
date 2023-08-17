@@ -238,10 +238,10 @@ async function renderOrderCard(orderData) {
     <button class="btn btn-delete">
     <i class="fa-solid fa-trash-can"></i>
     </button>
-    <button class="btn btn-save" hidden>
+    <button class="btn btn-save hide" hidden>
     <i class="fa-solid fa-check"></i>
     </button>
-    <button class="btn btn-cancel" hidden>
+    <button class="btn btn-cancel hide" hidden>
     <i class="fa-solid fa-xmark"></i>
     </button>
   </td>
@@ -256,8 +256,10 @@ async function renderOrderCard(orderData) {
   const inputTicketCount = orderCard.querySelector('.input-ticket-count');
 
   modifyButton.addEventListener('click', () => {
-  
-
+    modifyButton.classList.add('hide');
+    deleteButton.classList.add('hide');
+    saveButton.classList.remove('hide'); // Show the Save button
+    cancelButton.classList.remove('hide'); // Show the Cancel button
    
   });
 
@@ -265,14 +267,18 @@ async function renderOrderCard(orderData) {
     const newTicketCount = inputTicketCount.value;
     // Aici poți adăuga cod pentru a actualiza numărul de bilete în obiectul orderData sau în altă parte
     ticketCountDisplay.textContent = newTicketCount;
-
-  
+    saveButton.classList.add('hide'); // Hide the Save button again
+    cancelButton.classList.add('hide'); // Hide the Cancel button again
+    modifyButton.classList.remove('hide');
+    deleteButton.classList.remove('hide');
     
   });
 
   cancelButton.addEventListener('click', () => {
-   
-
+    saveButton.classList.add('hide'); // Hide the Save button again
+    cancelButton.classList.add('hide'); // Hide the Cancel button again
+    modifyButton.classList.remove('hide');
+    deleteButton.classList.remove('hide');
  
   });
 
