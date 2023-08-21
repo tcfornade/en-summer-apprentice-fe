@@ -1,8 +1,8 @@
 //Imports
 import { removeLoader, addLoader } from "./loader";
-//import { createOrderItem } from "./ordersTemplate";
-//import { renderOrderCard } from "./ordersTemplate";
 import { deleteOrder } from "./deleteOrder";
+
+import { renderOrdersPage } from "./ordersPage";
 
 
 // Navigate to a specific URL
@@ -13,27 +13,21 @@ function navigateTo(url) {
 // HTML templates
 function getHomePageTemplate() {
   return `
+  <div class="search-container">
+        <i class="fa fa-search"></i>
+        <input type="text" id="search-input" placeholder="Search..." autocomplete="off">
+  </div>
+
    <div id="content" class="hidden">
-   <input type="text" id="searchInput" placeholder="Caută...">
+     
    <ul id="results"></ul>
       <div class="events flex items-center justify-center flex-wrap">
+         <div id="nothing-alert">Nothing Found</div>
       </div>
     </div>
   `;
 }
 
-function getOrdersPageTemplate() {
-  return `
-  <head>
-      <link rel="stylesheet" href="style.css">
-  </head>
-  <div id="content">
-      <h1 class="text-2xl mb-4 mt-8 text-center">Purchased Tickets</h1>
-         
-  </div>
-</div>
-`;
-}
 
 function setupNavigationEvents() {
   const navLinks = document.querySelectorAll('nav a');
@@ -73,8 +67,6 @@ async function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getHomePageTemplate();
 
-  
-
   console.log('function', fetchTicketEvents());
   fetchTicketEvents()
   .then((data)=>{
@@ -87,9 +79,16 @@ async function renderHomePage() {
   const eventsData = await fetchTicketEvents();
   const eventsContainer = document.querySelector('.events');
 
-  eventsData.forEach(eventData => {
+  const eventImages = [
+     'src/assets/untold.webp',
+     'src/assets/electric.jpg',
+     'src/assets/meci.jpg',
+     'src/assets/wine.jpg'
+  ];
+  eventsData.forEach((eventData, index) => {
     const eventCard = document.createElement('div');
     eventCard.classList.add('event-card');
+    const eventImage =eventImages[index];
     const contentMarkup = `
     <div class="card">
       <header>
@@ -97,6 +96,7 @@ async function renderHomePage() {
         <hr>
       </header>
       <div class="content">
+        <img src="${eventImage}" alt="${eventData.eventName}" class="event-image">
          <div class="descriptionBox>
             <p> Description:</p>
             <p class=" text-gray-700">Description: ${eventData.eventDescription}</p>
@@ -171,6 +171,32 @@ async function renderHomePage() {
       }
     });
   });
+
+  //listener pentru search----
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const searchInput = document.getElementById('search-input');
+    const eventCards = document.querySelectorAll('.event-card');
+    const nothingFound = document.getElementById('nothing-alert');
+  
+    searchInput.addEventListener('input', function() {
+      const searchQuery = searchInput.value.trim().toLowerCase();
+  
+      eventCards.forEach(eventCard => {
+        const eventNameElement = eventCard.querySelector('.event-title');
+        const eventName = eventNameElement.textContent.toLowerCase();
+  
+        if (eventName.includes(searchQuery)) {
+          eventCard.style.display = 'block';
+        } else {
+          eventCard.style.display = 'none';
+        }
+      });
+  
+      const visibleEventCards = document.querySelectorAll('.event-card:not([style*="display: none"])');
+      nothingFound.style.display = visibleEventCards.length === 0 ? 'block' : 'none';
+    });
+  });
 }
 
 //get tickets ----------
@@ -207,158 +233,6 @@ async function placeOrder(orderData) {
   return responseData;
 }
 
-
-//get orders ----------
-async function fetchOrders() {
-  const response = await fetch('https://localhost:7114/api/Order/GetAll');
-  addLoader();
-  const orders = await response.json().finally(()=> {
-    setTimeout(()=> {
-      removeLoader();
-    },200);
-  });
-  return orders;
-}
-
-
-async function renderOrderCard(orderData) {
-  const orderCard = document.createElement('tr');
-  orderCard.classList.add('order-card');
-
-  const contentMarkup = `
-  <td class="order-details">${orderData.orderId}</td>
-  <td class="order-details">${orderData.orderedAt}</td>
-  <td class="order-details ticketCategoryDisplay">${orderData.ticketCategory}</td>
-  <div class="dropdown-from-orders hide">
-      <select>
-        <option value="vip">VIP</option>
-        <option value="standard">Standard</option>
-      </select>
-  </div>
-  <td class="order-details">
-  <span class="ticket-count-display ">${orderData.numberOfTickets}</span>
-      <input type="number" class="input-ticket-count hide" value="${orderData.numberOfTickets}" >
-    </td>
-  <td class="order-details">${orderData.totalPrice}</td>
-  <td class="order-actions">
-  <button class="btn btn-modify">
-       <i class="fa-solid fa-angles-down fa-beat-fade" style="color: #f9a124;"></i>
-   </button>
-    <button class="btn btn-delete">
-    <i class="fa-solid fa-trash-can"></i>
-    </button>
-    <button class="btn btn-save hide" >
-    <i class="fa-solid fa-check"></i>
-    </button>
-    <button class="btn btn-cancel hide" >
-    <i class="fa-solid fa-xmark"></i>
-    </button>
-  </td>
-`;
-
-  orderCard.innerHTML = contentMarkup;
-  const modifyButton = orderCard.querySelector('.btn-modify');
-  const deleteButton = orderCard.querySelector('.btn-delete');
-  const saveButton = orderCard.querySelector('.btn-save');
-  const cancelButton = orderCard.querySelector('.btn-cancel');
-  const inputTicketCount = orderCard.querySelector('.input-ticket-count'); //hidden initial
-  const ticketCountDisplay = orderCard.querySelector('.ticket-count-display');
-  const ticketCategoryDisplay=orderCard.querySelector('.ticketCategoryDisplay');
-  const ticketCategoryChange=orderCard.querySelector('.dropdown-from-orders');
-
-  modifyButton.addEventListener('click', () => {
-    modifyButton.classList.add('hide');
-    deleteButton.classList.add('hide');
-    saveButton.classList.remove('hide'); 
-    cancelButton.classList.remove('hide'); 
-    ticketCountDisplay.classList.add('hide');
-    inputTicketCount.classList.remove('hide');  
-    ticketCategoryDisplay.classList.add('hide');
-    ticketCategoryChange.classList.remove('hide'); 
-  });
-
-  saveButton.addEventListener('click', () => {
-    const newTicketCount = inputTicketCount.value;
-    // Aici poți adăuga cod pentru a actualiza numărul de bilete în obiectul orderData sau în altă parte
-    ticketCountDisplay.textContent = newTicketCount;
-    saveButton.classList.add('hide'); // Hide the Save button again
-    cancelButton.classList.add('hide'); // Hide the Cancel button again
-    modifyButton.classList.remove('hide');
-    deleteButton.classList.remove('hide');
-    ticketCountDisplay.classList.remove('hide');
-    inputTicketCount.classList.add('hide'); 
-    ticketCategoryDisplay.classList.remove('hide');
-    ticketCategoryChange.classList.add('hide');
-    
-    
-    
-  });
-
-  cancelButton.addEventListener('click', () => {
-    saveButton.classList.add('hide'); // Hide the Save button again
-    cancelButton.classList.add('hide'); // Hide the Cancel button again
-    modifyButton.classList.remove('hide');
-    deleteButton.classList.remove('hide');
-    ticketCountDisplay.classList.remove('hide');
-    inputTicketCount.classList.add('hide');  
-    ticketCategoryDisplay.classList.remove('hide');
-    ticketCategoryChange.classList.add('hide');
-  });
-
-  deleteButton.addEventListener('click', async () => {
-    const confirmation = confirm('Sunteți sigur că doriți să ștergeți comanda?');
-  
-    if (confirmation) {
-      const deletionResult = await deleteOrder(orderData.orderId);
-  
-      if (deletionResult.success) {
-        console.log(orderData.orderId);
-        orderCard.remove();
-        console.log('Ștergere reușită');
-      } else {
-        console.error(deletionResult.message);
-      }
-    } else {
-      console.log('Ștergere anulată');
-    }
-  });
-  return orderCard;
-}
-
-async function renderOrdersPage() {
-  const mainContentDiv = document.querySelector('.main-content-component');
-  mainContentDiv.innerHTML = getOrdersPageTemplate();
-
-  const ordersData = await fetchOrders();
-
-  const ordersTable = document.createElement('table');
-  ordersTable.classList.add('orders-table');
-
-  const tableHeaderMarkup = `
-    <thead>
-      <tr>
-        <th>OrderID</th>
-        <th>Date</th>
-        <th>Ticket Category</th>
-        <th>Number of Tickets</th>
-        <th>Total Price</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-  `;
-  ordersTable.innerHTML = tableHeaderMarkup;
-
-  const tableBody = document.createElement('tbody');
-  console.log("OrdersData", ordersData);
-
-  for (const orderData of ordersData) {
-    const orderCard = await renderOrderCard(orderData);
-    tableBody.appendChild(orderCard);
-  }
-
-  ordersTable.appendChild(tableBody);
-  mainContentDiv.appendChild(ordersTable);
-}
 
 // Render content based on URL
 function renderContent(url) {

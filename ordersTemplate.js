@@ -46,30 +46,30 @@ export function createOrderItem(order) {
     
   const actionsCell = document.createElement('td');
 
- //buton Delete 
-const deleteButton = document.createElement('button');
-const trashIcon = document.createElement('i');
-trashIcon.classList.add('fa-solid', 'fa-trash-can', 'fa-shake'); 
-deleteButton.appendChild(trashIcon);
-deleteButton.id = 'buttonDelete';
+//  //buton Delete 
+// const deleteButton = document.createElement('button');
+// const trashIcon = document.createElement('i');
+// trashIcon.classList.add('fa-solid', 'fa-trash-can', 'fa-shake'); 
+// deleteButton.appendChild(trashIcon);
+// deleteButton.id = 'buttonDelete';
 
-deleteButton.addEventListener('click', async () => {
+// deleteButton.addEventListener('click', async () => {
 
-  const deletionResult = await deleteOrder(orderData.orderId);
+//   const deletionResult = await deleteOrder(orderData.orderId);
 
-  if (deletionResult.success) {
+//   if (deletionResult.success) {
 
-     console.log('order.orderId');
+//      console.log('order.orderId');
 
-    console.log('successful deletion')
+//     console.log('successful deletion')
 
-  } else {
+//   } else {
 
-    console.error(deletionResult.message);
+//     console.error(deletionResult.message);
 
-  }
+//   }
 
-});
+// });
 
 //---buton Change
 const changeButton = document.createElement('button');
