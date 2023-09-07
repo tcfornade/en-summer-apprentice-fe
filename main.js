@@ -1,22 +1,40 @@
 //Imports
-import { removeLoader, addLoader } from "./loader";
-import { deleteOrder } from "./deleteOrder";
+import { removeLoader, addLoader } from './loader';
+import { deleteOrder } from './deleteOrder';
 
-import { renderOrdersPage } from "./ordersPage";
-
+import { renderOrdersPage } from './ordersPage';
+import { addSearch } from './searchBar';
+import { addListenerToRadioButtons } from './eventSort';
 
 // Navigate to a specific URL
 function navigateTo(url) {
   history.pushState(null, null, url);
   renderContent(url);
 }
-// HTML templates
+
+
 function getHomePageTemplate() {
   return `
+
+  <button id="sortByEventType" class = "btn-sort">Sort by event type</button>
+  <div class="radio-button-container hide">
+    <label>
+      <input type="radio" name="category" value="Music"> Music
+    </label>
+    <label>
+       <input type="radio" name="category" value="Sports"> Sports
+    </label>
+    <label>
+       <input type="radio" name="category" value="Drinks"> Drinks
+    </label>
+  </div>
+
   <div class="search-container">
         <i class="fa fa-search"></i>
         <input type="text" id="search-input" placeholder="Search..." autocomplete="off">
   </div>
+
+
 
    <div id="content" class="hidden">
      
@@ -27,7 +45,6 @@ function getHomePageTemplate() {
     </div>
   `;
 }
-
 
 function setupNavigationEvents() {
   const navLinks = document.querySelectorAll('nav a');
@@ -66,29 +83,33 @@ function setupInitialPage() {
 async function renderHomePage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getHomePageTemplate();
+  addListenerToRadioButtons();
+  const search = document.getElementById('search-input');
 
-  console.log('function', fetchTicketEvents());
-  fetchTicketEvents()
-  .then((data)=>{
-    setTimeout(()=> {
+  fetchTicketEvents().then((data) => {
+    setTimeout(() => {
       removeLoader();
-    },200);
-    console.log('data', data);
+    }, 200);
   });
 
   const eventsData = await fetchTicketEvents();
+
+  search.addEventListener('input', () => {
+    addSearch(eventsData);
+  });
+
   const eventsContainer = document.querySelector('.events');
 
   const eventImages = [
-     'src/assets/untold.webp',
-     'src/assets/electric.jpg',
-     'src/assets/meci.jpg',
-     'src/assets/wine.jpg'
+    'src/assets/untold.webp',
+    'src/assets/electric.jpg',
+    'src/assets/meci.jpg',
+    'src/assets/wine.jpg',
   ];
   eventsData.forEach((eventData, index) => {
     const eventCard = document.createElement('div');
     eventCard.classList.add('event-card');
-    const eventImage =eventImages[index];
+    const eventImage = eventImages[index];
     const contentMarkup = `
     <div class="card">
       <header>
@@ -115,6 +136,7 @@ async function renderHomePage() {
             <button class="btn btn-quantity" data-action="increment">+</button>
             
           </div>
+         
           <button class="btn btn-primary mt-4 mx-auto block rounded-full font-bold py-2 px-6" id="buyTicketsBtn">Buy</button>
         </div>
       </div>
@@ -125,37 +147,38 @@ async function renderHomePage() {
     eventsContainer.appendChild(eventCard);
 
     const buyTicketsButton = eventCard.querySelector('#buyTicketsBtn');
-    const ticketCategorySelect = eventCard.querySelector(`.ticket-category-${eventData.eventID}`);
+    const ticketCategorySelect = eventCard.querySelector(
+      `.ticket-category-${eventData.eventID}`
+    );
     const quantityInput = eventCard.querySelector('.ticket-quantity-input');
 
-    buyTicketsButton.addEventListener('click', async () => 
-    {
-     const ticketCategorySelect= document.querySelector(`.ticket-category-${eventData.eventID}`);
-     const selectedTicketCategory=ticketCategorySelect.value;
-     
-      const eventID = eventData.eventID; 
+    buyTicketsButton.addEventListener('click', async () => {
+      const ticketCategorySelect = document.querySelector(
+        `.ticket-category-${eventData.eventID}`
+      );
+      const selectedTicketCategory = ticketCategorySelect.value;
+
+      const eventID = eventData.eventID;
       const ticketCategoryID = parseInt(ticketCategorySelect.value);
       const numberOfTickets = parseInt(quantityInput.value);
 
       const orderData = {
         eventID,
-        ticketCategoryID:selectedTicketCategory,
-        numberOfTickets
+        ticketCategoryID: selectedTicketCategory,
+        numberOfTickets,
       };
-        console.log(JSON.stringify(orderData));
+
       try {
         const response = await placeOrder(orderData);
-        console.log('Order placed:', response);
-
-      } catch (error) {
-        console.error('Error placing order:', error);
-      }
+      } catch (error) {}
     });
 
-    const dropdowns = eventCard.querySelector('.dropdowns');
-   // const quantityInput = eventCard.querySelector('.ticket-quantity-input');
-    const incrementButton = eventCard.querySelector('[data-action="increment"]');
-    const decrementButton = eventCard.querySelector('[data-action="decrement"]');
+    const incrementButton = eventCard.querySelector(
+      '[data-action="increment"]'
+    );
+    const decrementButton = eventCard.querySelector(
+      '[data-action="decrement"]'
+    );
 
     incrementButton.addEventListener('click', () => {
       let currentValue = parseInt(quantityInput.value);
@@ -171,58 +194,31 @@ async function renderHomePage() {
       }
     });
   });
-
-  //listener pentru search----
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const searchInput = document.getElementById('search-input');
-    const eventCards = document.querySelectorAll('.event-card');
-    const nothingFound = document.getElementById('nothing-alert');
-  
-    searchInput.addEventListener('input', function() {
-      const searchQuery = searchInput.value.trim().toLowerCase();
-  
-      eventCards.forEach(eventCard => {
-        const eventNameElement = eventCard.querySelector('.event-title');
-        const eventName = eventNameElement.textContent.toLowerCase();
-  
-        if (eventName.includes(searchQuery)) {
-          eventCard.style.display = 'block';
-        } else {
-          eventCard.style.display = 'none';
-        }
-      });
-  
-      const visibleEventCards = document.querySelectorAll('.event-card:not([style*="display: none"])');
-      nothingFound.style.display = visibleEventCards.length === 0 ? 'block' : 'none';
-    });
-  });
 }
 
 //get tickets ----------
-async function fetchTicketEvents(){
+async function fetchTicketEvents() {
   const response = await fetch('https://localhost:7114/api/Event/GetAll');
-  const data=await response.json();
+  const data = await response.json();
   return data;
 }
 
 //place order --------
 async function placeOrder(orderData) {
   const apiUrl = 'http://localhost:9090/create-order';
-  
+
   addLoader();
 
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(orderData)
-  })
-  .finally(()=> {
-    setTimeout(()=> {
+    body: JSON.stringify(orderData),
+  }).finally(() => {
+    setTimeout(() => {
       removeLoader();
-    },200);
+    }, 200);
   });
 
   if (!response.ok) {
@@ -233,7 +229,6 @@ async function placeOrder(orderData) {
   return responseData;
 }
 
-
 // Render content based on URL
 function renderContent(url) {
   const mainContentDiv = document.querySelector('.main-content-component');
@@ -242,7 +237,7 @@ function renderContent(url) {
   if (url === '/') {
     renderHomePage();
   } else if (url === '/orders') {
-    renderOrdersPage()
+    renderOrdersPage();
   }
 }
 

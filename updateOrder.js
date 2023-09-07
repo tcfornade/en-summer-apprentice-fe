@@ -1,3 +1,5 @@
+import { renderOrdersPage } from "./ordersPage";
+
 export function updateOrder(data) {
     fetch('https://localhost:7114/api/Order/Patch', {
       method: 'PATCH',
@@ -13,7 +15,8 @@ export function updateOrder(data) {
       return response.json();
     })
     .then(data => {
-      // Acțiuni după apelul cu succes (poate actualizarea tabelului sau alte operații)
+      // actualizare tabel
+      renderOrdersPage();
     })
     .catch(error => {
       console.error('There was a problem with the fetch operation:', error);

@@ -1,24 +1,32 @@
 import { deleteOrder } from "./deleteOrder";
+import { updateOrder } from "./updateOrder";
 
 export async function renderOrderCard(orderData) {
     const orderCard = document.createElement('tr');
     orderCard.classList.add('order-card');
   
     const contentMarkup = `
-    <td class="order-details">${orderData.orderId}</td>
+    <td class="order-details id = "orderId">${orderData.orderId}</td>
     <td class="order-details">${orderData.orderedAt}</td>
     <td class="order-details ticketCategoryDisplay">${orderData.ticketCategory}</td>
+    <td class="order-details ticketCategoryDisplayID hide">${orderData.ticketCategoryId}</td>
+
+
+
     <div class="dropdown-from-orders hide">
-        <select>
+        <select id = "orderSelectTicketCategory">
           <option value="vip">VIP</option>
           <option value="standard">Standard</option>
         </select>
     </div>
+
+
+
     <td class="order-details">
     <span class="ticket-count-display ">${orderData.numberOfTickets}</span>
         <input type="number" class="input-ticket-count hide" value="${orderData.numberOfTickets}" >
       </td>
-    <td class="order-details">${orderData.totalPrice}</td>
+    <td class="order-details totalPrice">${orderData.totalPrice}</td>
     <td class="order-actions">
     <button class="btn btn-modify">
          <i class="fa-solid fa-angles-down fa-beat-fade" style="color: #f9a124;"></i>
@@ -26,7 +34,7 @@ export async function renderOrderCard(orderData) {
       <button class="btn btn-delete">
         <i class="fa-solid fa-trash-can"></i>
       </button>
-      <button class="btn btn-save hide" >
+      <button class="btn btn-save hide id = "saveButton" >
          <i class="fa-solid fa-check"></i>
       </button>
         <button class="btn btn-cancel hide" >
@@ -52,10 +60,11 @@ export async function renderOrderCard(orderData) {
     const deleteButton = orderCard.querySelector('.btn-delete');
     const saveButton = orderCard.querySelector('.btn-save');
     const cancelButton = orderCard.querySelector('.btn-cancel');
-    const inputTicketCount = orderCard.querySelector('.input-ticket-count'); //hidden initial
+    const inputTicketCount = orderCard.querySelector('.input-ticket-count'); 
     const ticketCountDisplay = orderCard.querySelector('.ticket-count-display');
     const ticketCategoryDisplay=orderCard.querySelector('.ticketCategoryDisplay');
-    const ticketCategoryChange=orderCard.querySelector('.dropdown-from-orders');
+    const ticketID = orderCard.querySelector('.ticketCategoryDisplayID');
+    const ticketCategoryChange=orderCard.querySelector('.dropdown-from-orders ');
   
     modifyButton.addEventListener('click', () => {
       modifyButton.classList.add('hide');
@@ -68,12 +77,38 @@ export async function renderOrderCard(orderData) {
       ticketCategoryChange.classList.remove('hide'); 
     });
   
-    saveButton.addEventListener('click', () => {
-      const newTicketCount = inputTicketCount.value;
-      // Aici poți adăuga cod pentru a actualiza numărul de bilete în obiectul orderData sau în altă parte
+    saveButton.addEventListener('click', async () => {
+      const orderSelect = orderCard.querySelector('#orderSelectTicketCategory');
+      const newTicketCount = inputTicketCount.value; //numarul de bilete
+      var ticketCategValueNumber = Number(ticketID.textContent);
+      const orderDetailsTd = document.querySelector('.order-details');
+
+      if(ticketCategoryDisplay.textContent == 'Standard' && orderSelect.value == 'vip')
+         ticketCategValueNumber+=4;
+      else if(ticketCategoryDisplay.textContent == 'VIP' && orderSelect.value == 'standard')
+         ticketCategValueNumber-=4; 
+  
+
+      const orderData = {
+        orderId : orderDetailsTd.textContent,
+        numberOfTickets: newTicketCount,
+        ticketCategoryId : ticketCategValueNumber
+      }
+
+      try{
+        const response = await updateOrder(orderData);
+      
+        toastr.success('Order updated successfully!');
+        
+      } catch (error){
+       
+      }
+     
+
+
       ticketCountDisplay.textContent = newTicketCount;
-      saveButton.classList.add('hide'); // Hide the Save button again
-      cancelButton.classList.add('hide'); // Hide the Cancel button again
+      saveButton.classList.add('hide'); 
+      cancelButton.classList.add('hide');
       modifyButton.classList.remove('hide');
       deleteButton.classList.remove('hide');
       ticketCountDisplay.classList.remove('hide');
@@ -97,12 +132,6 @@ export async function renderOrderCard(orderData) {
     });
   
    
-
-
-
-
-
-    // ------delete popup:
     const overlay = document.getElementById('overlay');
     const popupContainer = orderCard.querySelector('#popupContainer');
    

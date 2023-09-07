@@ -4,9 +4,9 @@ body {
 
 .events {
   display: flex;
-  flex-wrap: wrap; /* Permite trecerea pe linia următoare */
-  justify-content: flex-start; /* Așează cardurile la începutul rândului */
-  gap: 5px; /* Spațierea dorită între carduri */
+  flex-wrap: wrap; 
+  justify-content: flex-start; 
+  gap: 5px; 
 }
 .event-card {
   flex: 0 0 calc(30% - 5px); 
@@ -52,7 +52,7 @@ h1 {
   display: block;
   width: 70px;
   padding: 10px;
-  background-color: #183519;
+  background-color: #724d5f;
   color: white;
   border: none;
   border-radius: 5px;
@@ -61,7 +61,7 @@ h1 {
 }
 
 .btn:hover {
-  background-color: #030703;
+  background-color: #80427a;
 }
 
 .btn-quantity{
@@ -69,7 +69,7 @@ h1 {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background-color: #4caf50;
+  background-color: #beb6bc;
   color: white;
   text-align: center;
   line-height: 50px;
@@ -100,9 +100,10 @@ h1 {
 }
 
 #page-header {
-  background-color: #fff;
+  background-color: rgba(219, 215, 215, 1); 
   position: sticky;
   top: 0;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .link-item {
@@ -112,6 +113,8 @@ h1 {
 .logo {
   height: 50px;
   padding: 6px;
+  border-radius:15px; 
+  box-shadow: 0px 2px 4px rgba(236, 232, 232, 0.1); 
 }
 
 .add-btn {
@@ -149,6 +152,10 @@ h1 {
   margin-bottom: 20px;
 }
 
+.card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Adjust shadow for hover effect */
+  transform: translateY(-5px); /* Move the card up a bit on hover */
+}
 /* for orders page */
 
 .purchases{
@@ -207,6 +214,14 @@ th,
   margin:5px;
 }
 
+.btn-sort{
+  padding: 2px;
+  background-color:#b685b1;
+  display: inline;
+  margin: 5px;
+  border-radius: 5px;
+}
+
 .hide {
   display: none;
 }
@@ -229,6 +244,7 @@ th,
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  padding: 15px;
 }
 
 #search-input {
@@ -244,10 +260,11 @@ th,
 }
 
 .event-image{
-  width: 280px;
-  height: 150px;
-  margin-bottom: 15px;
-  
+  width: 260px;
+  height: 160px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 
